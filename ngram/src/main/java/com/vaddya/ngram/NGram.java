@@ -43,9 +43,9 @@ public class NGram {
         final NGramMapper mapper = new NGramMapper(cleaner, transformer, tokenizer);
         final NGramReducer reducer = new NGramReducer();
         if (useMpi) {
-            return new MpiNGramFinder(mapper, reducer);
+            return new NGramMpiFinder(mapper, reducer);
         } else {
-            return new SequentialNGramFinder(mapper, reducer);
+            return new NGramSeqFinder(mapper, reducer);
         }
     }
 }

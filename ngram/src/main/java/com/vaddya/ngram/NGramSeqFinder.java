@@ -9,11 +9,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
-public class SequentialNGramFinder implements NGramFinder {
+public class NGramSeqFinder implements NGramFinder {
     private final NGramMapper mapper;
     private final NGramReducer reducer;
 
-    public SequentialNGramFinder(
+    public NGramSeqFinder(
             @NotNull final NGramMapper mapper,
             @NotNull final NGramReducer reducer) {
         this.mapper = mapper;

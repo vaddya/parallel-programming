@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.*;
 
-public class MpiNGramFinder implements NGramFinder {
+public class NGramMpiFinder implements NGramFinder {
     private static final int BUFFER_SIZE = 10 * 1024 * 1024; // 10KB
     private static final TypeReference<Map<String, Integer>> STR_INT_MAP = new TypeReference<>() {};
 
@@ -16,7 +16,7 @@ public class MpiNGramFinder implements NGramFinder {
     private final NGramReducer reducer;
     private final ObjectMapper json = new ObjectMapper();
 
-    public MpiNGramFinder(
+    public NGramMpiFinder(
             @NotNull final NGramMapper mapper,
             @NotNull final NGramReducer reducer) {
         this.mapper = mapper;
