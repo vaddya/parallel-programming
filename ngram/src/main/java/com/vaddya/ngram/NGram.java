@@ -1,33 +1,51 @@
 package com.vaddya.ngram;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.io.FileNotFoundException;
-import java.util.Comparator;
 import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.stream.Stream;
 
 public class NGram {
-    public static void main(String[] args) throws FileNotFoundException {
-        final long start = System.currentTimeMillis();
-        final SequentialNGram sequential = new SequentialNGram();
-        final Map<String, Integer> result = sequential.findNGrams(args);
-        final long time = System.currentTimeMillis() - start;
-        System.out.println(
-                String.format("Found %d 3-grams in %d seconds", result.size(), time / 1000));
+    public static void main(String[] args) throws Exception {
+        if (args.length < 3) {
+            System.out.println("Usage: java -jar ngram.jar true 3 \"1.txt,2.txt\"");
+            System.out.println("- Use MPI: boolean flag");
+            System.out.println("- Ngram: integer value");
+            System.out.println("- Text files: string values separated by \",\"");
+            System.exit(1);
+        }
 
-        System.out.println("Top 20:");
-        sortedByValues(result)
-                .limit(20)
-                .forEach(e -> System.out.println(e.getKey() + " -> " + e.getValue()));
+        final boolean useMpi = Boolean.parseBoolean(args[0]);
+        final int ngram = Integer.parseInt(args[1]);
+        final String[] files = args[2].split(",");
+        final NGramFinder finder = createFinder(useMpi, ngram);
+
+        final long start = System.currentTimeMillis();
+        final Map<String, Integer> result = finder.findNGrams(files);
+        final long time = System.currentTimeMillis() - start;
+        if (result.size() > 0) {
+            final int tokenCount = result.remove("__tokenCount");
+            System.out.printf("Found %d %d-grams in %d tokens in %d ms\n", result.size(), ngram, tokenCount, time);
+            System.out.println("Top 20:");
+            Utils.sortedByValues(result)
+                    .limit(20)
+                    .forEach(e -> {
+                        final double prob = e.getValue().doubleValue() / tokenCount;
+                        System.out.printf("%s -> %.2f%% (%d)\n", e.getKey(), prob * 100, e.getValue());
+                    });
+        }
     }
 
-    static Stream<Map.Entry<String, Integer>> sortedByValues(@NotNull final Map<String, Integer> map) {
-        final SortedSet<Map.Entry<String, Integer>> sorted = new TreeSet<>(
-                Map.Entry.comparingByValue(Comparator.reverseOrder()));
-        sorted.addAll(map.entrySet());
-        return sorted.stream();
+    static NGramFinder createFinder(
+            final boolean useMpi,
+            final int ngram) {
+        System.out.printf("useMpi=%b, ngram=%d\n", useMpi, ngram);
+        final NGramCleaner cleaner = new NGramCleaner();
+        final NGramTransformer transformer = new NGramTransformer();
+        final NGramTokenizer tokenizer = new NGramTokenizer(ngram);
+        final NGramMapper mapper = new NGramMapper(cleaner, transformer, tokenizer);
+        final NGramReducer reducer = new NGramReducer();
+        if (useMpi) {
+            return new MpiNGramFinder(mapper, reducer);
+        } else {
+            return new SequentialNGramFinder(mapper, reducer);
+        }
     }
 }

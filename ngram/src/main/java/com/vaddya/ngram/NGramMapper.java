@@ -12,9 +12,10 @@ public class NGramMapper {
     private final NGramTransformer transformer;
     private final NGramTokenizer tokenizer;
 
-    public NGramMapper(@NotNull final NGramCleaner cleaner,
-                       @NotNull final NGramTransformer transformer,
-                       @NotNull final NGramTokenizer tokenizer) {
+    public NGramMapper(
+            @NotNull final NGramCleaner cleaner,
+            @NotNull final NGramTransformer transformer,
+            @NotNull final NGramTokenizer tokenizer) {
         this.cleaner = cleaner;
         this.transformer = transformer;
         this.tokenizer = tokenizer;
@@ -23,15 +24,18 @@ public class NGramMapper {
     @NotNull
     public Map<String, Integer> map(@NotNull final Scanner input) {
         final Map<String, Integer> counts = new HashMap<>();
+        int tokensCount = 0;
         while (input.hasNext()) {
             String line = input.nextLine();
             String cleaned = cleaner.filter(line);
             String transformed = transformer.filter(cleaned);
             Collection<String> tokens = tokenizer.tokenize(transformed);
+            tokensCount += tokens.size();
             for (String token : tokens) {
                 counts.merge(token, 1, Integer::sum);
             }
         }
+        counts.put("__tokenCount", tokensCount);
         return counts;
     }
 }

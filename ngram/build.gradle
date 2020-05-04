@@ -6,7 +6,7 @@ plugins {
 group 'com.vaddya'
 version '1.0-SNAPSHOT'
 
-sourceCompatibility = 1.14
+sourceCompatibility = JavaVersion.VERSION_14
 mainClassName = 'com.vaddya.ngram.NGram'
 
 jar {
@@ -15,18 +15,48 @@ jar {
                 'Main-Class': mainClassName
         )
     }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
 }
 
 repositories {
     mavenCentral()
+    maven {
+        url 'http://mathpar.com/mvnrepo/'
+    }
 }
 
 dependencies {
     implementation 'org.jetbrains:annotations:19.0.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.11.0'
+
+    implementation files('lib/mpi.jar')
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.1.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.1.0'
 }
 
 test {
     useJUnitPlatform()
+}
+
+def dummyOutputStream = new OutputStream() {
+    @Override
+    void write(int b) {}
+}
+
+task mpi(type: Exec, dependsOn: jar) {
+    errorOutput = dummyOutputStream
+
+    def names = []
+    fileTree("data").visit { FileVisitDetails details ->
+        names << details.file.path
+    }
+    def textFiles = names.join(",")
+    println "Text files: ${textFiles}"
+
+    def jarPath = jar.archiveFile.orNull.asFile.toString()
+    
+    commandLine "mpirun", "-np", MPI_PROC,
+            "java", "-jar", jarPath, MPI_USE, NGRAM, textFiles
 }

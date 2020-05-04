@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 public class NGramCleaner implements NGramFilter {
     private static final String LATIN_PATTERN = "[A-Za-zÀ-ÿ]";
     private static final String DIGIT_PATTERN = "[0-9]";
-    private static final String PUNCTUATION_PATTERN = "[`,;.!?—\\-\\_\n\t\r\\[\\]«'…*\\(\\)]";
+    private static final String PUNCTUATION_PATTERN = "[`,;.!?—\\-\\_\n\t\r\\[\\]«»'…*\\(\\)]";
     private static final String SPACE_PATTERN = " ";
 
     public enum Options {

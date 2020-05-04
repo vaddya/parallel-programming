@@ -17,7 +17,7 @@ public class NGramTransformer implements NGramFilter {
         this(EnumSet.allOf(Options.class));
     }
 
-    public NGramTransformer(Set<Options> options) {
+    public NGramTransformer(@NotNull final Set<Options> options) {
         this.options = options;
     }
     
