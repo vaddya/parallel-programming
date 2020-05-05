@@ -49,17 +49,16 @@ def dummyOutputStream = new OutputStream() {
 }
 
 task mpi(type: Exec, dependsOn: jar) {
-//    errorOutput = dummyOutputStream
+    errorOutput = dummyOutputStream
 
-    def names = []
+    def files = []
     fileTree("data").visit { FileVisitDetails details ->
-        names << details.file.path
+        files << details.file.path
     }
-    def textFiles = names.join(",")
-    println "Text files: ${textFiles}"
+    println "Text files:\n${files.join("\n")}"
 
     def jarPath = jar.archiveFile.orNull.asFile.toString()
     
     commandLine "mpirun", "-v", "-np", MPI_PROC,
-            "java", "-jar", jarPath, MPI_USE, NGRAM, textFiles
+            "java", "-jar", jarPath, MPI_USE, NGRAM, files.join(",")
 }

@@ -3,11 +3,13 @@ package com.vaddya.ngram;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import mpi.MPI;
+import mpi.Request;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.nio.ByteBuffer;
 import java.util.*;
 
 public class NGramMpiFinder implements NGramFinder {
@@ -34,11 +36,9 @@ public class NGramMpiFinder implements NGramFinder {
         try {
             final int rank = MPI.COMM_WORLD.getRank();
             final int size = MPI.COMM_WORLD.getSize();
-            log.info("{}/{}", rank, size);
             final List<Map<String, Integer>> fileMaps = new ArrayList<>();
             for (int i = rank; i < args.length; i += size) {
                 final long start = System.currentTimeMillis();
-                log.info("[{}] starting {}", rank, args[i]);
                 try (final Scanner input = new Scanner(new File(args[i]))) {
                     fileMaps.add(mapper.map(input));
                 }
@@ -46,16 +46,25 @@ public class NGramMpiFinder implements NGramFinder {
                 log.info("[{}] finished {} in {} ms", rank, args[i], time);
             }
             final Map<String, Integer> result = reducer.reduce(fileMaps);
-            log.info("[{}] finished", rank);
+            log.info("[{}] finished all", rank);
 
             if (rank == 0) {
+                final ByteBuffer[] buffers = new ByteBuffer[size - 1];
+                final Request[] requests = new Request[size - 1];
+                for (int i = 1; i < size; i++) {
+                    buffers[i - 1] = ByteBuffer.allocateDirect(BUFFER_SIZE);
+                    requests[i - 1] = MPI.COMM_WORLD.iRecv(buffers[i - 1], BUFFER_SIZE, MPI.BYTE, i, 0);
+                }
+
+                log.info("[{}] Awaiting {} requests", rank, requests.length);
+                Request.waitAll(requests);
+
                 final List<Map<String, Integer>> resultMaps = new ArrayList<>(size);
                 resultMaps.add(result);
-                final byte[] buffer = new byte[BUFFER_SIZE];
-                for (int i = 1; i < size; i++) {
-                    MPI.COMM_WORLD.recv(buffer, BUFFER_SIZE, MPI.BYTE, i, 0);
-                    resultMaps.add(json.readValue(buffer, STR_INT_MAP));
-                    Arrays.fill(buffer, (byte) 0);
+                for (final ByteBuffer buffer : buffers) {
+                    byte[] bytes = new byte[buffer.remaining()];
+                    buffer.get(bytes);
+                    resultMaps.add(json.readValue(bytes, STR_INT_MAP));
                 }
                 return reducer.reduce(resultMaps);
             } else {
@@ -63,6 +72,9 @@ public class NGramMpiFinder implements NGramFinder {
                 MPI.COMM_WORLD.send(bytes, bytes.length, MPI.BYTE, 0, 0);
                 return Collections.emptyMap();
             }
+        } catch (Exception e) {
+            log.error("Error occurred", e);
+            return Collections.emptyMap();
         } finally {
             MPI.Finalize();
         }
