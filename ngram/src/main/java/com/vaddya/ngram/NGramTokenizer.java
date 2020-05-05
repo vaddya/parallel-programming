@@ -20,7 +20,7 @@ public class NGramTokenizer {
             tokens.add(text.substring(i, i + ngram));
 
             // heavy useless work
-//            for (int j = 0; j < i; j++) {
+//            for (int j = 0; j < i / 100; j++) {
 //                text.substring(j, i);
 //            }
         }

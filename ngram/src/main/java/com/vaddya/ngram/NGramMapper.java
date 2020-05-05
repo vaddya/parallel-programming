@@ -1,13 +1,17 @@
 package com.vaddya.ngram;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
 
 public class NGramMapper {
+    private static final Logger log = LogManager.getLogger(NGramMapper.class);
+    
     private final NGramCleaner cleaner;
     private final NGramTransformer transformer;
     private final NGramTokenizer tokenizer;
