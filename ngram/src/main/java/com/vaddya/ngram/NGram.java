@@ -4,11 +4,16 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.EnumSet;
 import java.util.Map;
+
+import static com.vaddya.ngram.NGramCleaner.Options.*;
+import static com.vaddya.ngram.NGramTransformer.Options.SQUASH_SPACES;
+import static com.vaddya.ngram.NGramTransformer.Options.TO_LOWER_CASE;
 
 public class NGram {
     private static final Logger log = LogManager.getLogger(NGram.class);
-    
+
     public static void main(String[] args) throws Exception {
         if (args.length < 3) {
             log.error("Usage: java -jar ngram.jar true 3 \"1.txt,2.txt\"");
@@ -43,8 +48,16 @@ public class NGram {
             final boolean useMpi,
             final int ngram) {
         log.info("useMpi={}, ngram={}", useMpi, ngram);
-        final NGramCleaner cleaner = new NGramCleaner();
-        final NGramTransformer transformer = new NGramTransformer();
+        final NGramCleaner cleaner = new NGramCleaner(EnumSet.of(
+                REMOVE_LATIN,
+                REMOVE_DIGIT,
+                REMOVE_SPACE,
+                REMOVE_PUNCTUATION
+        ));
+        final NGramTransformer transformer = new NGramTransformer(EnumSet.of(
+                TO_LOWER_CASE,
+                SQUASH_SPACES
+        ));
         final NGramTokenizer tokenizer = new NGramTokenizer(ngram);
         final NGramMapper mapper = new NGramMapper(cleaner, transformer, tokenizer);
         final NGramReducer reducer = new NGramReducer();

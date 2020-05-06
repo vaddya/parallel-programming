@@ -60,5 +60,5 @@ task mpi(type: Exec, dependsOn: jar) {
     def jarPath = jar.archiveFile.orNull.asFile.toString()
     
     commandLine "mpirun", "-v", "-np", MPI_PROC,
-            "java", "-jar", jarPath, MPI_USE, NGRAM, files.join(",")
+            "java", "-jar", jarPath, MPI_USE, NGRAM, (files * 1).join(",")
 }

@@ -22,9 +22,9 @@ public class NGramSeqFinder implements NGramFinder {
 
     @Override
     @NotNull
-    public Map<String, Integer> findNGrams(@NotNull final String[] args) throws FileNotFoundException {
+    public Map<String, Integer> findNGrams(@NotNull final String[] files) throws FileNotFoundException {
         final List<Map<String, Integer>> maps = new ArrayList<>();
-        for (String file : args) {
+        for (String file : files) {
             try (final Scanner input = new Scanner(new File(file))) {
                 maps.add(mapper.map(input));
             }
