@@ -58,7 +58,7 @@ task mpi(type: Exec, dependsOn: jar) {
     println "Text files:\n${files.join("\n")}"
 
     def jarPath = jar.archiveFile.orNull.asFile.toString()
-    
-    commandLine "mpirun", "-v", "-np", MPI_PROC,
-            "java", "-jar", jarPath, MPI_USE, NGRAM, (files * 1).join(",")
+    def mult = MPI_MULT.toInteger()
+    commandLine "mpirun", "-v", "-np", MPI_PROC, "--hostfile", "mpi.hostfile",
+            "java", "-jar", jarPath, MPI_USE, MPI_NGRAM, (files * mult).join(",")
 }
