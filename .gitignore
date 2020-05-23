@@ -2,4 +2,14 @@
 .gradle
 build
 .ipynb_checkpoints
+*.aux
+*.toc
+*.lof
+*.lot
+*.lol
+*.out
+*.gz
+*.log
+*.dvi
+*.pdf
 

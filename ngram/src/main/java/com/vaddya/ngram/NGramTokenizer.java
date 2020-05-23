@@ -18,11 +18,6 @@ public class NGramTokenizer {
         List<String> tokens = new ArrayList<>();
         for (int i = 0; i < text.length() - ngram + 1; i++) {
             tokens.add(text.substring(i, i + ngram));
-
-            // heavy useless work
-//            for (int j = 0; j < i / 100; j++) {
-//                text.substring(j, i);
-//            }
         }
         return tokens;
     }
